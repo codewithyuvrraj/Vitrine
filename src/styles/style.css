@@ -1,0 +1,72 @@
+:root {
+  --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --border: rgba(255, 255, 255, 0.1);
+  --bg-dark: #1a1a1a;
+  --bg-darker: #0f0f0f;
+  
+  /* Theme variables - will be updated dynamically */
+  --theme-bg: linear-gradient(135deg, #000000, #1a1a1a, #333333);
+  --theme-accent: #FFD700;
+  --theme-secondary: #D4AF37;
+  --theme-text: #ffffff;
+  --theme-text-secondary: rgba(255, 255, 255, 0.8);
+  --theme-border: rgba(255, 255, 255, 0.2);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--theme-bg) !important;
+  color: #ffffff;
+  line-height: 1.6;
+  transition: background 0.3s ease;
+}
+
+.app-container {
+  min-height: 100vh;
+  background: var(--theme-bg) !important;
+  color: white;
+  transition: background 0.3s ease;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  background: #0095f6;
+  color: white;
+}
+
+.btn:hover {
+  background: #0084d6;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+}
+
+.hidden {
+  display: none !important;
+}

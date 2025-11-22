@@ -1,0 +1,9 @@
+name = "instagram-clone"
+framework = "vite"
+
+[build]
+cmd = "npm install && npm run build"
+output_dir = "dist"
+
+[functions]
+directory = "functions"
