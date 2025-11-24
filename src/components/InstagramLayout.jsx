@@ -2025,12 +2025,123 @@ const InstagramLayout = () => {
   }
 
   const handleUploadSubmitLocal = async (uploadData) => {
+    if (!currentUser?.id) {
+      alert('Please log in to upload')
+      return
+    }
+
+    setUploadProgress({ isUploading: true, message: 'Uploading...', startTime: Date.now() })
+
     try {
-      await handleUploadSubmit(uploadData, currentUser, setPosts, loadPosts)
-      alert('Upload successful!')
+      // Upload file to Cloudinary first
+      let fileUrl = null
+      if (uploadData.file) {
+        const fileType = uploadData.file.type.startsWith('video/') ? 'video' : 'image'
+        fileUrl = await uploadToCloudinary(uploadData.file, fileType)
+        console.log('✅ File uploaded to Cloudinary:', fileUrl)
+      }
+
+      if (!fileUrl) {
+        throw new Error('File upload failed')
+      }
+
+      // Save to database based on upload type
+      let mutation, variables
+      
+      if (uploadData.type === 'reel') {
+        mutation = `mutation CreateReel($userId: uuid!, $videoUrl: String!, $caption: String) {
+          insert_reels_one(object: {
+            user_id: $userId,
+            video_url: $videoUrl,
+            caption: $caption
+          }) {
+            id
+            video_url
+            caption
+            user_id
+            created_at
+          }
+        }`
+        
+        variables = {
+          userId: currentUser.id,
+          videoUrl: fileUrl,
+          caption: uploadData.caption || ''
+        }
+      } else if (uploadData.type === 'story') {
+        mutation = `mutation CreateStory($userId: uuid!, $storagePath: String!) {
+          insert_stories_one(object: {
+            user_id: $userId,
+            storage_path: $storagePath,
+            expires_at: "${new Date(Date.now() + 24*60*60*1000).toISOString()}"
+          }) {
+            id
+            user_id
+            storage_path
+            created_at
+          }
+        }`
+        
+        variables = {
+          userId: currentUser.id,
+          storagePath: fileUrl
+        }
+      } else {
+        // Regular post
+        mutation = `mutation CreatePost($authorId: uuid!, $imageUrl: String!, $caption: String) {
+          insert_posts_one(object: {
+            author_id: $authorId,
+            image_url: $imageUrl,
+            caption: $caption
+          }) {
+            id
+            image_url
+            caption
+            author_id
+            created_at
+          }
+        }`
+        
+        variables = {
+          authorId: currentUser.id,
+          imageUrl: fileUrl,
+          caption: uploadData.caption || ''
+        }
+      }
+
+      const response = await fetch(`https://ofafvhtbuhvvkhuprotc.graphql.ap-southeast-1.nhost.run/v1`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-hasura-admin-secret': '2=o_TVK82F6FKyi8xcbfE9lAm,r,jpq@'
+        },
+        body: JSON.stringify({
+          query: mutation,
+          variables
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.errors) {
+        throw new Error(result.errors[0].message)
+      }
+
+      // Reload posts/stories to show new content
+      if (uploadData.type === 'story') {
+        await loadStories()
+      } else {
+        await loadPosts()
+      }
+
+      alert(`${uploadData.type === 'story' ? 'Story' : uploadData.type === 'reel' ? 'Reel' : 'Post'} uploaded successfully!`)
+      setShowUploadModal(false)
+      
     } catch (error) {
       console.error('Upload failed:', error)
-      alert('Upload failed. Please try again.')
+      alert('Upload failed: ' + error.message)
+    } finally {
+      setUploadProgress({ isUploading: false, message: '', startTime: null })
     }
   }
 

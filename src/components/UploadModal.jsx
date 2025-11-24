@@ -81,11 +81,9 @@ const UploadModal = ({ isOpen, onClose, uploadType, onSubmit }) => {
 
     setLoading(true);
     try {
-      const fileUrl = await uploadToCloudinary(selectedFile, selectedFile.type.startsWith('video/') ? 'video' : 'image');
-      
       await onSubmit({
         caption: caption.trim(),
-        fileUrl,
+        file: selectedFile,
         type: uploadType,
         music: selectedMusic
       });
